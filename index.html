@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>कौन बनेगा करोड़पति</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #020024;
+            background: radial-gradient(circle, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(0,29,58,1) 100%);
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .app {
+            background: rgba(10, 25, 47, 0.85);
+            width: 95%;
+            max-width: 800px;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            text-align: center;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.5);
+        }
+        
+        #prize-money {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffd700;
+            background: rgba(0,0,0,0.3);
+            padding: 5px 15px;
+            border-radius: 50px;
+        }
+
+        #timer {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #fff;
+            background: #dc3545;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 3px solid white;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 10px 10px rgba(220, 53, 69, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+        }
+
+        .question-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 80px;
+        }
+
+        #question {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin: 20px 0;
+            color: #ffd700;
+        }
+
+        #feedback-emoji {
+            font-size: 2.5rem;
+            margin-left: 15px;
+            animation: pop-in 0.4s ease;
+        }
+
+        @keyframes pop-in {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(145deg, #0d326e, #0b2a5c);
+            border: 2px solid #3a6ea5;
+            border-radius: 12px;
+            padding: 15px;
+            color: white;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .btn:hover:not([disabled]) {
+            background: linear-gradient(145deg, #3a6ea5, #2c568c);
+            border-color: #ffd700;
+        }
+        
+        .btn.correct {
+            background: #28a745;
+            border-color: #28a745;
+            color: white;
+            animation: flash 0.5s;
+        }
+        
+        .btn.wrong {
+            background: #dc3545;
+            border-color: #dc3545;
+            color: white;
+            animation: shake 0.5s;
+        }
+
+        @keyframes flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        #start-btn, #next-btn, #play-again-btn {
+            font-size: 1.2rem;
+            font-weight: 700;
+            padding: 12px 35px;
+            border-radius: 50px;
+            cursor: pointer;
+            background: #ffd700;
+            color: #000428;
+            border: none;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        #start-btn:hover, #next-btn:hover, #play-again-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+        }
+
+        #score-screen h2 {
+            color: #ffd700;
+            font-size: 2.5rem;
+        }
+        
+        #score-text {
+            font-size: 1.5rem;
+        }
+
+        .hide {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bg-music" loop src="background.mp3"></audio>
+    <audio id="timer-sound" loop src="timer.mp3"></audio>
+    <audio id="correct-sound" src="correct.mp3"></audio>
+    <audio id="wrong-sound" src="wrong.mp3"></audio>
+    <audio id="question-intro-sound" src="intro.mp3"></audio>
+
+
+    <div class="app">
+        <div id="start-screen">
+            <h1>कौन बनेगा करोड़पति</h1>
+            <p>15 सवालों के सही जवाब देकर जीतें शानदार इनाम। हर सवाल के लिए आपके पास 30 सेकंड होंगे।</p>
+            <button id="start-btn">Start Game</button>
+        </div>
+
+        <div id="quiz-screen" class="hide">
+            <div class="quiz-header">
+                <div id="prize-money">₹ 1,000</div>
+                <div id="timer">30</div>
+            </div>
+            <div class="question-area">
+                <h2 id="question">Question text</h2>
+                <span id="feedback-emoji"></span>
+            </div>
+            <div id="answer-buttons" class="btn-grid">
+                </div>
+            <div class="controls">
+                <button id="next-btn" class="hide">Next Question</button>
+            </div>
+        </div>
+        
+        <div id="score-screen" class="hide">
+            <h2 id="score-title">Game End!</h2>
+            <p id="score-text">आपने जीते हैं ₹0.</p>
+            <button id="play-again-btn">Play Again!</button>
+        </div>
+    </div>
+
+    <script>
+        // === HTML ELEMENTS ===
+        const startButton = document.getElementById('start-btn');
+        const nextButton = document.getElementById('next-btn');
+        const playAgainButton = document.getElementById('play-again-btn');
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const scoreScreen = document.getElementById('score-screen');
+        const questionElement = document.getElementById('question');
+        const answerButtonsElement = document.getElementById('answer-buttons');
+        const prizeMoneyElement = document.getElementById('prize-money');
+        const timerElement = document.getElementById('timer');
+        const scoreTextElement = document.getElementById('score-text');
+        const scoreTitleElement = document.getElementById('score-title');
+        const feedbackEmojiElement = document.getElementById('feedback-emoji');
+
+        // === SOUNDS ===
+        const bgMusic = document.getElementById('bg-music');
+        const timerSound = document.getElementById('timer-sound');
+        const correctSound = document.getElementById('correct-sound');
+        const wrongSound = document.getElementById('wrong-sound');
+        const questionIntroSound = document.getElementById('question-intro-sound');
+
+        // === GAME DATA ===
+        const prizeMoney = [1000, 2000, 3000, 5000, 10000, 20000, 40000, 50000, 100000, 1000000, 2000000, 4000000, 5000000, 10000000, 70000000];
+        const TIME_LIMIT = 30;
+
+        const allQuestions = [
+            { question: 'In what year did the Great October Socialist Revolution take place?', answers: [{ text: '1917', correct: true }, { text: '1923', correct: false }, { text: '1914', correct: false }, { text: '1920', correct: false }] },
+            { question: 'What is the largest lake in the world?', answers: [{ text: 'Caspian Sea', correct: false }, { text: 'Baikal', correct: true }, { text: 'Lake Superior', correct: false }, { text: 'Ontario', correct: false }] },
+            { question: 'Which planet in the solar system is known as the “Red Planet”?', answers: [{ text: 'Venus', correct: false }, { text: 'Earth', correct: false }, { text: 'Mars', correct: true }, { text: 'Jupiter', correct: false }] },
+            { question: 'Who wrote the novel “War and Peace”?', answers: [{ text: 'Anton Chekhov', correct: false }, { text: 'Fyodor Dostoevsky', correct: false }, { text: 'Leo Tolstoy', correct: true }, { text: 'Ivan Turgenev', correct: false }] },
+            { question: 'What is the capital of Japan?', answers: [{ text: 'Beijing', correct: false }, { text: 'Tokyo', correct: true }, { text: 'Seoul', correct: false }, { text: 'Bangkok', correct: false }] },
+            { question: 'Which river is the longest in the world?', answers: [{ text: 'Amazon', correct: false }, { text: 'Mississippi', correct: false }, { text: 'Nile', correct: true }, { text: 'Yangtze', correct: false }] },
+            { question: 'What gas is used to extinguish fires?', answers: [{ text: 'Oxygen', correct: false }, { text: 'Nitrogen', correct: false }, { text: 'Carbon dioxide', correct: true }, { text: 'Hydrogen', correct: false }] },
+            { question: 'What animal is the national symbol of Australia?', answers: [{ text: 'Kangaroo', correct: true }, { text: 'Koala', correct: false }, { text: 'Emu', correct: false }, { text: 'Crocodile', correct: false }] },
+            { question: 'Which of the following planets is not a gas giant?', answers: [{ text: 'Mars', correct: true }, { text: 'Jupiter', correct: false }, { text: 'Saturn', correct: false }, { text: 'Uranus', correct: false }] },
+            { question: 'What is the name of the process by which plants convert sunlight into energy?', answers: [{ text: 'Respiration', correct: false }, { text: 'Photosynthesis', correct: true }, { text: 'Oxidation', correct: false }, { text: 'Evolution', correct: false }] },
+            { question: 'What chemical element is designated as “Hg”?', answers: [{ text: 'Silver', correct: false }, { text: 'Tin', correct: false }, { text: 'Copper', correct: false }, { text: 'Mercury', correct: true }] },
+            { question: 'In what year was the first international modern Olympiad held?', answers: [{ text: '1896', correct: true }, { text: '1900', correct: false }, { text: '1912', correct: false }, { text: '1924', correct: false }] },
+            { question: 'For which of these disciplines Nobel Prize is awarded?', answers: [{ text: 'Physics, Chemistry', correct: false }, { text: 'Physiology', correct: false }, { text: 'Medicine', correct: false }, { text: 'All of the above', correct: true }] },
+            { question: 'Entomology is the science that studies:', answers: [{ text: 'Behavior of human beings', correct: false }, { text: 'Insects', correct: true }, { text: 'The origin and history of technical and scientific terms', correct: false }, { text: 'The formation of rocks', correct: false }] },
+            { question: 'Hitler\'s party is known as:', answers: [{ text: 'Labour Party', correct: false }, { text: 'Nazi Party', correct: true }, { text: 'Ku-Klux-Klan', correct: false }, { text: 'Democratic Party', correct: false }] },
+            { question: 'For which Galileo is famous?', answers: [{ text: 'Developed the telescope', correct: false }, { text: 'Discovered four satellites of Jupiter', correct: false }, { text: 'Found that the swinging motion of the pendulum results in consistent time measurement.', correct: false }, { text: 'All of the above', correct: true }] },
+            { question: 'When the First Afghan War took place in', answers: [{ text: '1839', correct: true }, { text: '1843', correct: false }, { text: '1833', correct: false }, { text: '1848', correct: false }] },
+            { question: 'Ecology deals with', answers: [{ text: 'Birds', correct: false }, { text: 'Cell formation', correct: false }, { text: 'Relation between organisms and their environment', correct: true }, { text: 'Tissues', correct: false }] },
+            { question: 'Which is the largest island?', answers: [{ text: 'New Guinea', correct: false }, { text: 'Andaman Nicobar', correct: false }, { text: 'Greenland', correct: true }, { text: 'Hawaii', correct: false }] },
+            { question: 'Which one is the hottest continent?', answers: [{ text: 'Africa', correct: true }, { text: 'South Asia', correct: false }, { text: 'North America', correct: false }, { text: 'Australia', correct: false }] },
+            { question: 'What do Koalas usually eat?', answers: [{ text: 'Bamboo', correct: false }, { text: 'Eucalyptus', correct: true }, { text: 'Aloe Vera', correct: false }, { text: 'Banana', correct: false }] },
+            { question: 'What is the most popular bread in France?', answers: [{ text: 'Brioche', correct: false }, { text: 'Baguette', correct: true }, { text: 'White bread', correct: false }, { text: 'Ciabatta', correct: false }] },
+            { question: 'What is the official currency of Japan?', answers: [{ text: 'Won', correct: false }, { text: 'Yuan', correct: false }, { text: 'Yen', correct: true }, { text: 'Dollars', correct: false }] },
+            { question: 'What is the phobia of thunder and rain?', answers: [{ text: 'Agoraphobia', correct: false }, { text: 'Ombrophobia', correct: true }, { text: 'Acrophobia', correct: false }, { text: 'Claustrophobia', correct: false }] },
+            { question: 'What does Carpe Diem mean in Latin?', answers: [{ text: 'Enjoy the moment', correct: true }, { text: 'Have no fear', correct: false }, { text: 'Sorry I blew it', correct: false }, { text: 'Hello', correct: false }] },
+            { question: 'Which one of the following countries is not in Africa?', answers: [{ text: 'Morocco', correct: false }, { text: 'Yemen', correct: true }, { text: 'Sudan', correct: false }, { text: 'Algeria', correct: false }] },
+            { question: 'What is considered the lung of the Earth?', answers: [{ text: 'Amazon rainforest', correct: true }, { text: 'The Mississippi River', correct: false }, { text: 'The Sahara', correct: false }, { text: 'Everest', correct: false }] },
+            { question: 'Where does the Sushi come from?', answers: [{ text: 'Japan', correct: true }, { text: 'China', correct: false }, { text: 'America', correct: false }, { text: 'South Korea', correct: false }] },
+            { question: 'In which century the Mona Lisa was painted?', answers: [{ text: '18th century', correct: false }, { text: '15th century', correct: false }, { text: '16th century', correct: true }, { text: '14th century', correct: false }] },
+            { question: 'Who wrote the “Great Gatsby” novel?', answers: [{ text: 'Leo Tolstoy', correct: false }, { text: 'Hemingway', correct: false }, { text: 'Stephen King', correct: false }, { text: 'F. Scott Fitzgerald', correct: true }] },
+            { question: 'Which is the richest country in the world?', answers: [{ text: 'Qatar', correct: true }, { text: 'Russia', correct: false }, { text: 'The USA', correct: false }, { text: 'The UAE', correct: false }] },
+            { question: 'Which county is the biggest grower of coffee?', answers: [{ text: 'Spain', correct: false }, { text: 'India', correct: false }, { text: 'Ethiopia', correct: false }, { text: 'Brazil', correct: true }] },
+            { question: 'How many bones are in the body of an adult human?', answers: [{ text: '330', correct: false }, { text: '206', correct: true }, { text: '250', correct: false }, { text: '210', correct: false }] },
+            { question: 'When do humans use more facial muscles?', answers: [{ text: 'While smiling', correct: false }, { text: 'While frowning', correct: true }, { text: 'While sleeping', correct: false }, { text: 'While talking', correct: false }] },
+            { question: 'Who wrote “Crime and Punishment”?', answers: [{ text: 'Leo Tolstoy', correct: false }, { text: 'Fyodor Dostoevsky', correct: true }, { text: 'Anton Chekhov', correct: false }, { text: 'Ivan Turgenev', correct: false }] },
+            { question: 'In what year was the United Nations (UN) founded?', answers: [{ text: '1945', correct: true }, { text: '1919', correct: false }, { text: '1956', correct: false }, { text: '1961', correct: false }] },
+            { question: 'Which city is called the “City of Winds”?', answers: [{ text: 'Chicago', correct: true }, { text: 'Seattle', correct: false }, { text: 'Washington', correct: false }, { text: 'Veliky Novgorod', correct: false }] },
+            { question: 'What animal is a symbol of peace and neutrality?', answers: [{ text: 'Polar bear', correct: false }, { text: 'White tiger', correct: false }, { text: 'White lion', correct: false }, { text: 'White crane', correct: true }] },
+            { question: 'What element is the main constituent of diamonds?', answers: [{ text: 'Carbon', correct: true }, { text: 'Oxygen', correct: false }, { text: 'Silver', correct: false }, { text: 'Gold', correct: false }] },
+            { question: 'In what year was Ferdinand Magellan\'s first successful circumnavigation of the world?', answers: [{ text: '1492', correct: false }, { text: '1520', correct: true }, { text: '1588', correct: false }, { text: '1620', correct: false }] },
+            { question: 'Which river is the second longest in the world?', answers: [{ text: 'Amazon', correct: false }, { text: 'Yangtze', correct: true }, { text: 'Nile', correct: false }, { text: 'Mississippi', correct: false }] },
+            { question: 'What year was the first man sent to space?', answers: [{ text: '1957', correct: false }, { text: '1961', correct: true }, { text: '1969', correct: false }, { text: '1975', correct: false }] },
+            { question: 'Which sea is considered the most salty on Earth?', answers: [{ text: 'Red Sea', correct: false }, { text: 'Mediterranean Sea', correct: false }, { text: 'Dead Sea', correct: true }, { text: 'Black Sea', correct: false }] },
+            { question: 'Which organ in the human body is responsible for the secretion of bile?', answers: [{ text: 'Liver', correct: true }, { text: 'Kidneys', correct: false }, { text: 'Spleen', correct: false }, { text: 'Stomach', correct: false }] },
+            { question: 'Which planet is known as the “Morning Star” or “Evening Star”?', answers: [{ text: 'Mars', correct: false }, { text: 'Venus', correct: true }, { text: 'Mercury', correct: false }, { text: 'Jupiter', correct: false }] },
+            { question: 'What chemical element is designated as “Cu”?', answers: [{ text: 'Zinc', correct: false }, { text: 'Copper', correct: true }, { text: 'Cobalt', correct: false }, { text: 'Kurtz', correct: false }] },
+            { question: 'In what year did the French Revolution take place?', answers: [{ text: '1789', correct: true }, { text: '1812', correct: false }, { text: '1905', correct: false }, { text: '1793', correct: false }] },
+            { question: 'What ocean is between Africa and Australia?', answers: [{ text: 'Pacific', correct: false }, { text: 'Indian', correct: true }, { text: 'Atlantic', correct: false }, { text: 'Arctic', correct: false }] },
+            { question: 'Which element makes up most of the atmosphere of Mars?', answers: [{ text: 'Carbon dioxide', correct: true }, { text: 'Oxygen', correct: false }, { text: 'Nitrogen', correct: false }, { text: 'Hydrogen', correct: false }] },
+            { question: 'Which element makes up most of the atmosphere of Titan?', answers: [{ text: 'Methane', correct: true }, { text: 'Carbon dioxide', correct: false }, { text: 'Hydrogen', correct: false }, { text: 'Oxygen', correct: false }] },
+            { question: 'In what year did the discovery of Antarctica occur?', answers: [{ text: '1500', correct: false }, { text: '1778', correct: false }, { text: '1820', correct: true }, { text: '1892', correct: false }] },
+            { question: 'In what year was the International Red Cross founded?', answers: [{ text: '1863', correct: true }, { text: '1901', correct: false }, { text: '1945', correct: false }, { text: '1980', correct: false }] },
+            { question: 'What instrument is in Leonardo da Vinci\'s “The Last Supper”?', answers: [{ text: 'Tablets', correct: false }, { text: 'Lute', correct: true }, { text: 'Guitar', correct: false }, { text: 'Harp', correct: false }] },
+            { question: 'In which country did the Chernobyl nuclear disaster take place?', answers: [{ text: 'Russia', correct: false }, { text: 'Ukraine', correct: true }, { text: 'Belarus', correct: false }, { text: 'Lithuania', correct: false }] },
+            { question: 'What ocean lies between North America and Eurasia?', answers: [{ text: 'Pacific', correct: false }, { text: 'Atlantic', correct: true }, { text: 'Indian', correct: false }, { text: 'Arctic', correct: false }] },
+            { question: 'In what year was the Magna Carta signed?', answers: [{ text: '1066', correct: false }, { text: '1215', correct: true }, { text: '1492', correct: false }, { text: '1689', correct: false }] },
+            { question: 'What chemical element is used to cool and freeze food?', answers: [{ text: 'Sodium', correct: false }, { text: 'Hydrogen', correct: false }, { text: 'Oxygen', correct: false }, { text: 'Nitrogen', correct: true }] },
+            { question: 'Which country is famous for its pyramids and the Sphinx?', answers: [{ text: 'India', correct: false }, { text: 'China', correct: false }, { text: 'Mexico', correct: false }, { text: 'Egypt', correct: true }] },
+            { question: 'What is the science that studies the past of life on Earth?', answers: [{ text: 'Palaeontology', correct: true }, { text: 'Astronomy', correct: false }, { text: 'Anthropology', correct: false }, { text: 'Geology', correct: false }] },
+            { question: 'What chemical element forms the basis of the haemoglobin molecule?', answers: [{ text: 'Nitrogen', correct: false }, { text: 'Iron', correct: true }, { text: 'Oxygen', correct: false }, { text: 'Silver', correct: false }] },
+            { question: 'In what year was the League of Nations founded?', answers: [{ text: '1919', correct: true }, { text: '1923', correct: false }, { text: '1939', correct: false }, { text: '1945', correct: false }] },
+            { question: 'Which planet has the most diverse climate and atmosphere?', answers: [{ text: 'Mercury', correct: false }, { text: 'Earth', correct: true }, { text: 'Mars', correct: false }, { text: 'Venus', correct: false }] },
+            { question: 'In what year did the Berlin Wall fall?', answers: [{ text: '1961', correct: false }, { text: '1989', correct: true }, { text: '1991', correct: false }, { text: '2000', correct: false }] },
+            { question: 'Which sea lies between Asia and Africa?', answers: [{ text: 'Caspian', correct: false }, { text: 'Red', correct: false }, { text: 'Mediterranean', correct: true }, { text: 'Dead', correct: false }] },
+            { question: 'Which organ in the human body is responsible for secreting insulin?', answers: [{ text: 'Liver', correct: false }, { text: 'Kidneys', correct: false }, { text: 'Pancreas', correct: true }, { text: 'Stomach', correct: false }] },
+            { question: 'What year did the Great Depression start?', answers: [{ text: '1914', correct: false }, { text: '1929', correct: true }, { text: '1939', correct: false }, { text: '1945', correct: false }] },
+            { question: 'What chemical element is used in the manufacture of glass?', answers: [{ text: 'Silver', correct: false }, { text: 'Sodium', correct: false }, { text: 'Silicon', correct: true }, { text: 'Oxygen', correct: false }] },
+            { question: 'Which planet is known as the “Planet of Love”?', answers: [{ text: 'Venus', correct: true }, { text: 'Mars', correct: false }, { text: 'Earth', correct: false }, { text: 'Jupiter', correct: false }] },
+            { question: 'What is the main component of carbon dioxide (CO2)?', answers: [{ text: 'Oxygen', correct: false }, { text: 'Hydrogen', correct: false }, { text: 'Carbon', correct: true }, { text: 'Nitrogen', correct: false }] },
+            { question: 'In what year was UNESCO founded?', answers: [{ text: '1945', correct: true }, { text: '1950', correct: false }, { text: '1965', correct: false }, { text: '1973', correct: false }] },
+            { question: 'What element is used in steel production?', answers: [{ text: 'Copper', correct: false }, { text: 'Iron', correct: true }, { text: 'Tin', correct: false }, { text: 'Silver', correct: false }] },
+            { question: 'What year was the Olympic Committee founded?', answers: [{ text: '1894', correct: true }, { text: '1896', correct: false }, { text: '1900', correct: false }, { text: '1912', correct: false }] },
+            { question: 'What is the main component of human bones and teeth?', answers: [{ text: 'Calcium', correct: true }, { text: 'Iron', correct: false }, { text: 'Sodium', correct: false }, { text: 'Magnesium', correct: false }] },
+            { question: 'Which organ filters blood and produces urine?', answers: [{ text: 'Heart', correct: false }, { text: 'Liver', correct: false }, { text: 'Kidneys', correct: true }, { text: 'Spleen', correct: false }] },
+            { question: 'In what year was the first official Olympics held in modern times?', answers: [{ text: '1896', correct: true }, { text: '1900', correct: false }, { text: '1924', correct: false }, { text: '1936', correct: false }] },
+            { question: 'Which planet has the largest diameter?', answers: [{ text: 'Mercury', correct: false }, { text: 'Venus', correct: false }, { text: 'Earth', correct: false }, { text: 'Jupiter', correct: true }] },
+            { question: 'What element is used to fill balloons and airships?', answers: [{ text: 'Hydrogen', correct: false }, { text: 'Oxygen', correct: false }, { text: 'Helium', correct: true }, { text: 'Neon', correct: false }] },
+            { question: 'When did the Renaissance begin?', answers: [{ text: '1300s', correct: false }, { text: '1500s', correct: false }, { text: '1400s', correct: true }, { text: '1600s', correct: false }] },
+            { question: 'What element is used in battery manufacturing?', answers: [{ text: 'Lead', correct: false }, { text: 'Copper', correct: false }, { text: 'Aluminum', correct: false }, { text: 'Lithium', correct: true }] },
+            { question: 'What radiation allows X-ray examinations?', answers: [{ text: 'Ultrasound', correct: false }, { text: 'Radioactivity', correct: false }, { text: 'Infrared', correct: false }, { text: 'X-ray', correct: true }] },
+            { question: 'Which planet is known as the “Blue Planet”?', answers: [{ text: 'Venus', correct: false }, { text: 'Earth', correct: true }, { text: 'Uranus', correct: false }, { text: 'Neptune', correct: false }] },
+            { question: 'In what year did the first man land on the moon?', answers: [{ text: '1961', correct: false }, { text: '1969', correct: true }, { text: '1975', correct: false }, { text: '1983', correct: false }] },
+            { question: 'Which actor portrayed James Bond in a record seven movies?', answers: [{ text: 'Sean Connery', correct: false }, { text: 'Daniel Craig', correct: false }, { text: 'Pierce Brosnan', correct: false }, { text: 'Roger Moore', correct: true }] },
+            { question: 'Filaria is caused by a bite from which insect?', answers: [{ text: 'Bacteria', correct: false }, { text: 'Mosquito', correct: true }, { text: 'Protozoa', correct: false }, { text: 'Virus', correct: false }] },
+            { question: 'A Fathometer is used to measure what?', answers: [{ text: 'Earthquakes', correct: false }, { text: 'Rainfall', correct: false }, { text: 'Ocean depth', correct: true }, { text: 'Sound intensity', correct: false }] },
+            { question: 'In which year did terrorists attack New York\'s World Trade Centre?', answers: [{ text: '2000', correct: false }, { text: '2001', correct: true }, { text: '2002', correct: false }, { text: '2003', correct: false }] },
+            { question: 'Approximately how many red blood cells are in an adult human body?', answers: [{ text: '15 trillion', correct: false }, { text: '20 trillion', correct: false }, { text: '25 trillion', correct: false }, { text: '30 trillion', correct: true }] },
+            { question: 'In which season does the human body need more fat?', answers: [{ text: 'Autumn', correct: false }, { text: 'Spring', correct: false }, { text: 'Winter', correct: true }, { text: 'Summer', correct: false }] },
+            { question: 'How many teeth does an adult dog have?', answers: [{ text: '32', correct: false }, { text: '34', correct: false }, { text: '38', correct: false }, { text: '42', correct: true }] },
+            { question: 'How many times has Brazil won the Football World Cup?', answers: [{ text: '4', correct: false }, { text: '2', correct: false }, { text: '5', correct: true }, { text: '1', correct: false }] },
+            { question: 'How many players are on each side in a Basketball game?', answers: [{ text: '4', correct: false }, { text: '5', correct: true }, { text: '6', correct: false }, { text: '7', correct: false }] },
+            { question: 'The Hundred Years\' War was fought between which two countries?', 'answers': [{ 'text': 'France and England', 'correct': true }, { 'text': 'Greece and Persia', 'correct': false }, { 'text': 'Rome and Carthage', 'correct': false }, { 'text': 'Spain and Portugal', 'correct': false }] },
+            { question: 'Which animal is known as the "Ship of the Desert"?', 'answers': [{ 'text': 'Horse', 'correct': false }, { 'text': 'Camel', 'correct': true }, { 'text': 'Donkey', 'correct': false }, { 'text': 'Elephant', 'correct': false }] },
+            { question: 'Who was the first person to walk on the moon?', 'answers': [{ 'text': 'Yuri Gagarin', 'correct': false }, { 'text': 'Neil Armstrong', 'correct': true }, { 'text': 'John Glenn', 'correct': false }, { 'text': 'Buzz Aldrin', 'correct': false }] },
+            { question: 'Which city is the capital of Italy?', 'answers': [{ 'text': 'Venice', 'correct': false }, { 'text': 'Florence', 'correct': false }, { 'text': 'Rome', 'correct': true }, { 'text': 'Milan', 'correct': false }] },
+            { question: 'Which of these famous landmarks is in India?', 'answers': [{ 'text': 'Eiffel Tower', 'correct': false }, { 'text': 'Colosseum', 'correct': false }, { 'text': 'Taj Mahal', 'correct': true }, { 'text': 'Great Wall of China', 'correct': false }] },
+            { question: 'In which country was the composer Wolfgang Amadeus Mozart born?', 'answers': [{ 'text': 'Germany', 'correct': false }, { 'text': 'Austria', 'correct': true }, { 'text': 'Czech Republic', 'correct': false }, { 'text': 'Italy', 'correct': false }] },
+            { question: 'Which of these inventions is most attributed to Thomas Edison?', 'answers': [{ 'text': 'The practical light bulb', 'correct': true }, { 'text': 'The telephone', 'correct': false }, { 'text': 'The computer', 'correct': false }, { 'text': 'The rocket', 'correct': false }] },
+            { question: 'Which animal is a symbol of courage in Chinese culture?', 'answers': [{ 'text': 'Lion', 'correct': false }, { 'text': 'Dragon', 'correct': true }, { 'text': 'Eagle', 'correct': false }, { 'text': 'Bear', 'correct': false }] },
+            { question: 'Who invented the telegraph?', 'answers': [{ 'text': 'Alexander Graham Bell', 'correct': false }, { 'text': 'Guglielmo Marconi', 'correct': false }, { 'text': 'Thomas Edison', 'correct': false }, { 'text': 'Samuel Morse', 'correct': true }] },
+            { question: 'What animal is a national symbol of China?', 'answers': [{ 'text': 'Giant Panda', 'correct': true }, { 'text': 'Elephant', 'correct': false }, { 'text': 'Tiger', 'correct': false }, { 'text': 'Lion', 'correct': false }] },
+            { question: 'Which of these cities is the capital of Egypt?', 'answers': [{ 'text': 'Athens', 'correct': false }, { 'text': 'Cairo', 'correct': true }, { 'text': 'Baghdad', 'correct': false }, { 'text': 'Riyadh', 'correct': false }] },
+            { question: 'Which vitamin is often referred to as the “sunshine vitamin”?', 'answers': [{ 'text': 'Vitamin A', 'correct': false }, { 'text': 'Vitamin B', 'correct': false }, { 'text': 'Vitamin C', 'correct': false }, { 'text': 'Vitamin D', 'correct': true }] },
+            { question: 'Germany\'s invasion of which country led to the start of World War II?', 'answers': [{ 'text': 'France', 'correct': false }, { 'text': 'Poland', 'correct': true }, { 'text': 'Austria', 'correct': false }, { 'text': 'Belgium', 'correct': false }] },
+            { question: 'What is the name of the longest river in Russia?', 'answers': [{ 'text': 'Volga', 'correct': false }, { 'text': 'Lena', 'correct': true }, { 'text': 'Ob', 'correct': false }, { 'text': 'Amur', 'correct': false }] },
+            { question: 'Who was the first President of the USA?', 'answers': [{ 'text': 'George Washington', 'correct': true }, { 'text': 'John Adams', 'correct': false }, { 'text': 'Thomas Jefferson', 'correct': false }, { 'text': 'James Madison', 'correct': false }] },
+            { question: 'Who is the author of the theory of evolution by natural selection?', 'answers': [{ 'text': 'Charles Darwin', 'correct': true }, { 'text': 'Isaac Newton', 'correct': false }, { 'text': 'Albert Einstein', 'correct': false }, { 'text': 'Marie Curie', 'correct': false }] },
+            { question: 'Which country is considered the birthplace of the Olympic Games?', 'answers': [{ 'text': 'Greece', 'correct': true }, { 'text': 'Rome', 'correct': false }, { 'text': 'Egypt', 'correct': false }, { 'text': 'China', 'correct': false }] },
+            { question: 'Who wrote the play “Romeo and Juliet”?', 'answers': [{ 'text': 'William Shakespeare', 'correct': true }, { 'text': 'Alexander Pushkin', 'correct': false }, { 'text': 'Fyodor Dostoyevsky', 'correct': false }, { 'text': 'Victor Hugo', 'correct': false }] },
+            { question: 'Which of these animals cannot jump?', 'answers': [{ 'text': 'Goat', 'correct': false }, { 'text': 'Horse', 'correct': false }, { 'text': 'Elephant', 'correct': true }, { 'text': 'Kangaroo', 'correct': false }] },
+            { question: 'Which canal connects the Red Sea and the Mediterranean Sea?', 'answers': [{ 'text': 'Suez Canal', 'correct': true }, { 'text': 'Panama Canal', 'correct': false }, { 'text': 'Erie Canal', 'correct': false }, { 'text': 'Kiel Canal', 'correct': false }] },
+            { question: 'In what year did the Titanic sink?', 'answers': [{ 'text': '1913', 'correct': false }, { 'text': '1912', 'correct': true }, { 'text': '1812', 'correct': false }, { 'text': '1920', 'correct': false }] },
+            { question: 'Which social network first introduced the “stories” feature?', 'answers': [{ 'text': 'Facebook', 'correct': false }, { 'text': 'Instagram', 'correct': false }, { 'text': 'Snapchat', 'correct': true }, { 'text': 'Twitter', 'correct': false }] },
+            { question: 'What game became popular with the principle of “catch Pokemon in the real world”?', 'answers': [{ 'text': 'Mario Kart Tour', 'correct': false }, { 'text': 'Clash of Clans', 'correct': false }, { 'text': 'Pokemon GO', 'correct': true }, { 'text': 'Candy Crush Saga', 'correct': false }] },
+            { question: 'What device is primarily used to view content in virtual reality?', 'answers': [{ 'text': 'Smartphone', 'correct': false }, { 'text': '3D glasses', 'correct': false }, { 'text': 'VR Headset', 'correct': true }, { 'text': 'Tablet', 'correct': false }] },
+            { question: 'Which month is the shortest?', 'answers': [{ 'text': 'January', 'correct': false }, { 'text': 'February', 'correct': true }, { 'text': 'March', 'correct': false }, { 'text': 'April', 'correct': false }] },
+            { question: 'Which city is the capital of Russia?', 'answers': [{ 'text': 'St. Petersburg', 'correct': false }, { 'text': 'Kazan', 'correct': false }, { 'text': 'Sochi', 'correct': false }, { 'text': 'Moscow', 'correct': true }] }
+        ];
+
+        // === STATE VARIABLES ===
+        let gameQuestions, currentQuestionIndex;
+        let winnings = 0;
+        let timer;
+        let timeLeft;
+        
+        // === EVENT LISTENERS ===
+        startButton.addEventListener('click', startQuiz);
+        nextButton.addEventListener('click', () => {
+            currentQuestionIndex++;
+            setNextQuestion();
+        });
+        playAgainButton.addEventListener('click', startQuiz);
+        
+        // === FUNCTIONS ===
+        function startQuiz() {
+            startScreen.classList.add('hide');
+            scoreScreen.classList.add('hide');
+            quizScreen.classList.remove('hide');
+            
+            // हर गेम के लिए 120 में से 15 रैंडम सवाल चुनें
+            gameQuestions = allQuestions.sort(() => Math.random() - 0.5).slice(0, 15);
+            currentQuestionIndex = 0;
+            winnings = 0;
+            
+            bgMusic.currentTime = 0;
+            bgMusic.play().catch(e => console.log("Audio चलाने के लिए यूज़र इंटरेक्शन आवश्यक है।"));
+            
+            setNextQuestion();
+        }
+
+        function setNextQuestion() {
+            resetState();
+            if (currentQuestionIndex < gameQuestions.length) {
+                showQuestion(gameQuestions[currentQuestionIndex]);
+                startTimer();
+            } else {
+                showFinalWin();
+            }
+        }
+
+        function showQuestion(question) {
+            prizeMoneyElement.innerText = `₹ ${prizeMoney[currentQuestionIndex].toLocaleString('en-IN')} के लिए`;
+            questionElement.innerText = `${currentQuestionIndex + 1}. ${question.question}`;
+            
+            questionIntroSound.play();
+            
+            const optionLetters = ['A', 'B', 'C', 'D'];
+            question.answers.forEach((answer, index) => {
+                const button = document.createElement('button');
+                button.innerText = `${optionLetters[index]}: ${answer.text}`;
+                button.classList.add('btn');
+                if (answer.correct) {
+                    button.dataset.correct = answer.correct;
+                }
+                button.addEventListener('click', selectAnswer);
+                answerButtonsElement.appendChild(button);
+            });
+        }
+        
+        function startTimer() {
+            timeLeft = TIME_LIMIT;
+            timerElement.textContent = timeLeft;
+            timer = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = timeLeft;
+                if (timeLeft < 10) {
+                    timerElement.style.background = '#ffc107'; // Warning color
+                }
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    gameOver(true); // true मतलब टाइम खत्म हुआ
+                }
+            }, 1000);
+            timerSound.currentTime = 0;
+            timerSound.play();
+        }
+
+        function resetState() {
+            clearInterval(timer);
+            timerSound.pause();
+            feedbackEmojiElement.innerText = '';
+            timerElement.style.background = '#dc3545';
+            nextButton.classList.add('hide');
+            while (answerButtonsElement.firstChild) {
+                answerButtonsElement.removeChild(answerButtonsElement.firstChild);
+            }
+        }
+
+        function selectAnswer(e) {
+            clearInterval(timer);
+            timerSound.pause();
+            
+            const selectedButton = e.target;
+            const correct = selectedButton.dataset.correct === 'true';
+            
+            Array.from(answerButtonsElement.children).forEach(button => {
+                button.disabled = true;
+                if (button.dataset.correct) {
+                    setStatusClass(button, true); // सही जवाब दिखाएं
+                }
+            });
+
+            if (!correct) {
+                setStatusClass(selectedButton, false);
+                feedbackEmojiElement.innerText = '❌';
+                bgMusic.pause();
+                wrongSound.play();
+                setTimeout(() => gameOver(false), 2000);
+            } else {
+                winnings = prizeMoney[currentQuestionIndex];
+                feedbackEmojiElement.innerText = '✅';
+                bgMusic.pause();
+                correctSound.play();
+                setTimeout(() => {
+                    if (currentQuestionIndex < gameQuestions.length -1) {
+                        bgMusic.play();
+                        nextButton.classList.remove('hide');
+                    } else {
+                        showFinalWin();
+                    }
+                }, 2000);
+            }
+        }
+        
+        function gameOver(isTimeout) {
+            quizScreen.classList.add('hide');
+            scoreScreen.classList.remove('hide');
+            scoreTitleElement.innerText = isTimeout ? "Time End!" : "Wrong Answer!";
+            scoreTextElement.innerText = `आप जीतते हैं ₹ ${winnings.toLocaleString('en-IN')}.`;
+        }
+        
+        function showFinalWin() {
+            bgMusic.pause();
+            quizScreen.classList.add('hide');
+            scoreScreen.classList.remove('hide');
+            winnings = prizeMoney[prizeMoney.length - 1]; // Set to max prize
+            scoreTitleElement.innerText = "बधाई हो!";
+            scoreTextElement.innerText = `आप करोड़पति बन गए! आपने जीते हैं ₹ ${winnings.toLocaleString('en-IN')}!`;
+        }
+
+        function setStatusClass(element, correct) {
+            if (correct) {
+                element.classList.add('correct');
+            } else {
+                element.classList.add('wrong');
+            }
+        }
+
+    </script>
+</body>
+</html>
